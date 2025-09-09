@@ -1,263 +1,420 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script>```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>City Cafe Guide</title>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Anime+Ace&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Anime Ace', sans-serif;
-    }
-    .animate-bounce-in {
-      animation: bounceIn 0.5s ease-in-out;
-    }
-    .hover-scale {
-      transition: transform 0.3s ease;
-    }
-    .hover-scale:hover {
-      transform: scale(1.05);
-    }
-    @keyframes bounceIn {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.1); opacity: 0.5; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H4CK3R C4LC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background-color: #0a0a0a;
+            color: #00ff00;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid #00ff00;
+            background-color: #111;
+            box-shadow: 0 0 15px #00ff00;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            text-shadow: 0 0 5px #00ff00;
+            letter-spacing: 2px;
+        }
+        
+        .header p {
+            font-size: 12px;
+            color: #008800;
+            margin-top: 5px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            flex: 1;
+        }
+        
+        .calculator {
+            background-color: #111;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 0 20px #00ff00;
+            width: 300px;
+            margin: 20px 0;
+        }
+        
+        .display {
+            background-color: #000;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: right;
+            font-size: 24px;
+            min-height: 30px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            position: relative;
+        }
+        
+        .display::after {
+            content: "_";
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+        }
+        
+        button {
+            background-color: #222;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 3px;
+        }
+        
+        button:hover {
+            background-color: #003300;
+            box-shadow: 0 0 10px #00ff00;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+            background-color: #004400;
+        }
+        
+        .operator {
+            background-color: #002200;
+        }
+        
+        .equals {
+            background-color: #004400;
+            grid-column: span 2;
+        }
+        
+        .clear {
+            background-color: #330000;
+        }
+        
+        .logs {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #008800;
+            height: 60px;
+            overflow-y: auto;
+            background-color: #000;
+            padding: 5px;
+            border: 1px solid #003300;
+        }
+        
+        .log-entry {
+            margin: 3px 0;
+            border-bottom: 1px dotted #003300;
+            padding-bottom: 3px;
+        }
+        
+        .ad-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        
+        .ad-label {
+            color: #008800;
+            font-size: 10px;
+            text-align: center;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .ad-unit {
+            background: #001100;
+            border: 1px solid #003300;
+            border-radius: 4px;
+            padding: 10px;
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #007700;
+            width: 300px;
+            text-align: center;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 15px;
+            border-top: 1px solid #00ff00;
+            background-color: #111;
+            margin-top: auto;
+            font-size: 12px;
+            color: #008800;
+        }
+        
+        .glow {
+            text-shadow: 0 0 5px #00ff00;
+        }
+        
+        @media (max-width: 600px) {
+            .calculator {
+                width: 90%;
+            }
+            
+            .ad-unit {
+                width: 90%;
+            }
+        }
+    </style>
 </head>
-<body class="bg-amber-50 text-gray-800">
-  <div id="root"></div>
-  <script type="text/babel">
-    const { useState, useEffect } = React;
-
-    // Star Rating Component
-    const StarRating = ({ rating }) => {
-      return (
-        <div className="flex">
-          {[...Array(5)].map((_, i) => (
-            <svg
-              key={i}
-              className={`w-5 h-5 ${i < rating ? 'text-yellow-400' : 'text-gray-300'} transition-transform hover-scale`}
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.97a1 1 0 00.95.69h4.15c.969 0 1.371 1.24.588 1.81l-3.357 2.44a1 1 0 00-.364 1.118l1.287 3.97c.3.921-.755 1.688-1.54 1.118l-3.357-2.44a1 1 0 00-1.175 0l-3.357 2.44c-.784.57-1.838-.197-1.54-1.118l1.287-3.97a1 1 0 00-.364-1.118L2.314 9.397c-.783-.57-.38-1.81.588-1.81h4.15a1 1 0 00.95-.69l1.286-3.97z" />
-            </svg>
-          ))}
+<body>
+    <div class="matrix-bg" id="matrixBg"></div>
+    
+    <div class="header">
+        <h1>H4CK3R C4LCUL4T0R v1.0</h1>
+        <p>SYSTEM SECURE | ENCRYPTION ACTIVE | READY FOR OPERATION</p>
+    </div>
+    
+    <div class="container">
+        <div class="ad-container">
+            <div>
+                <div class="ad-label">Network Access Required</div>
+                <div class="ad-unit">
+                    Adsterra Social Bar
+                    <script type='text/javascript' src='//pl27602279.revenuecpmgate.com/ea/cd/7a/eacd7a989e761b9727d6769adbde5df4.js'></script>
+                </div>
+            </div>
         </div>
-      );
-    };
-
-    // Cafe Card Component
-    const CafeCard = ({ cafe, onClick }) => {
-      return (
-        <div
-          className="bg-white rounded-lg shadow-md p-4 m-4 cursor-pointer hover-scale animate-bounce-in"
-          onClick={onClick}
-        >
-          <img
-            src={cafe['Image URL'] || 'https://via.placeholder.com/150'}
-            alt={cafe['Cafe Name']}
-            className="w-full h-40 object-cover rounded-md"
-          />
-          <h2 className="text-xl font-bold text-amber-800 mt-2">{cafe['Cafe Name']}</h2>
-          <StarRating rating={parseInt(cafe['Rating'])} />
-          <p className="text-gray-600">{cafe['Address']}</p>
+        
+        <div class="calculator">
+            <div class="display" id="display">0</div>
+            
+            <div class="buttons">
+                <button class="clear" onclick="clearAll()">C</button>
+                <button onclick="backspace()">⌫</button>
+                <button class="operator" onclick="appendOperation('%')">%</button>
+                <button class="operator" onclick="appendOperation('/')">/</button>
+                
+                <button onclick="appendNumber('7')">7</button>
+                <button onclick="appendNumber('8')">8</button>
+                <button onclick="appendNumber('9')">9</button>
+                <button class="operator" onclick="appendOperation('*')">*</button>
+                
+                <button onclick="appendNumber('4')">4</button>
+                <button onclick="appendNumber('5')">5</button>
+                <button onclick="appendNumber('6')">6</button>
+                <button class="operator" onclick="appendOperation('-')">-</button>
+                
+                <button onclick="appendNumber('1')">1</button>
+                <button onclick="appendNumber('2')">2</button>
+                <button onclick="appendNumber('3')">3</button>
+                <button class="operator" onclick="appendOperation('+')">+</button>
+                
+                <button onclick="appendNumber('0')">0</button>
+                <button onclick="appendNumber('.')">.</button>
+                <button class="equals" onclick="calculate()">=</button>
+            </div>
+            
+            <div class="logs" id="logs">
+                <div class="log-entry">System initialized</div>
+                <div class="log-entry">Waiting for input...</div>
+            </div>
         </div>
-      );
-    };
-
-    // Cafe Detail Component
-    const CafeDetail = ({ cafe, onBack }) => {
-      return (
-        <div className="bg-white rounded-lg shadow-md p-6 m-4 animate-bounce-in">
-          <button
-            className="bg-amber-600 text-white px-4 py-2 rounded-full mb-4 hover:bg-amber-700 transition-colors"
-            onClick={onBack}
-          >
-            Back
-          </button>
-          <img
-            src={cafe['Image URL'] || 'https://via.placeholder.com/300'}
-            alt={cafe['Cafe Name']}
-            className="w-full h-64 object-cover rounded-md"
-          />
-          <h2 className="text-2xl font-bold text-amber-800 mt-4">{cafe['Cafe Name']}</h2>
-          <StarRating rating={parseInt(cafe['Rating'])} />
-          <p className="text-gray-600 mt-2"><strong>Address:</strong> {cafe['Address']}</p>
-          <p className="text-gray-600"><strong>Open Hours:</strong> {cafe['Open Hours']}</p>
-          <p className="text-gray-600"><strong>Speciality Coffee:</strong> {cafe['Speciality Coffee']}</p>
+        
+        <div class="ad-container">
+            <div>
+                <div class="ad-label">Secure Connection Established</div>
+                <div class="ad-unit">
+                    Popunder Ad
+                    <script type='text/javascript' src='//pl27602261.revenuecpmgate.com/cc/2f/e7/cc2fe7e6087d5b6754eb49faa822c741.js'></script>
+                </div>
+            </div>
         </div>
-      );
-    };
+    </div>
+    
+    <div class="footer">
+        <p>CONNECTION SECURE | ENCRYPTION: AES-256 | TRANSMISSION: SSL/TLS</p>
+        <p>© 2023 H4CK3R C4LC | ALL SYSTEMS OPERATIONAL</p>
+    </div>
 
-    // Main App Component
-    const App = () => {
-      const [cafes, setCafes] = useState([]);
-      const [filteredCafes, setFilteredCafes] = useState([]);
-      const [searchTerm, setSearchTerm] = useState('');
-      const [minRating, setMinRating] = useState(0);
-      const [selectedCafe, setSelectedCafe] = useState(null);
-
-      // Fetch data from Google Sheets
-      useEffect(() => {
-        const fetchCafes = async () => {
-          try {
-            // Replace with your Google Sheets API key and Sheet ID
-            const API_KEY = 'YOUR_API_KEY';
-            const SHEET_ID = 'YOUR_SHEET_ID';
-            const response = await axios.get(
-              `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/City_Cafes!A1:F100?key=${API_KEY}`
-            );
-            const rows = response.data.values;
-            const headers = rows[0];
-            const data = rows.slice(1).map(row => {
-              let obj = {};
-              headers.forEach((header, i) => {
-                obj[header] = row[i] || '';
-              });
-              return obj;
-            });
-            setCafes(data);
-            setFilteredCafes(data);
-          } catch (error) {
-            console.error('Error fetching cafes:', error);
-          }
+    <script>
+        let currentInput = '0';
+        let previousInput = '';
+        let operation = null;
+        let resetScreen = false;
+        
+        const display = document.getElementById('display');
+        const logs = document.getElementById('logs');
+        
+        function updateDisplay() {
+            display.textContent = currentInput;
+        }
+        
+        function appendNumber(number) {
+            if (currentInput === '0' || resetScreen) {
+                currentInput = number;
+                resetScreen = false;
+            } else {
+                currentInput += number;
+            }
+            updateDisplay();
+        }
+        
+        function appendOperation(op) {
+            if (operation !== null) calculate();
+            previousInput = currentInput;
+            operation = op;
+            resetScreen = true;
+            addLog(`Operation: ${previousInput} ${operation}`);
+        }
+        
+        function calculate() {
+            let computation;
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+            
+            if (isNaN(prev) || isNaN(current)) return;
+            
+            switch (operation) {
+                case '+':
+                    computation = prev + current;
+                    break;
+                case '-':
+                    computation = prev - current;
+                    break;
+                case '*':
+                    computation = prev * current;
+                    break;
+                case '/':
+                    computation = prev / current;
+                    break;
+                case '%':
+                    computation = prev % current;
+                    break;
+                default:
+                    return;
+            }
+            
+            addLog(`Computed: ${previousInput} ${operation} ${currentInput} = ${computation}`);
+            currentInput = computation.toString();
+            operation = null;
+            previousInput = '';
+            resetScreen = true;
+            updateDisplay();
+        }
+        
+        function clearAll() {
+            currentInput = '0';
+            previousInput = '';
+            operation = null;
+            resetScreen = false;
+            addLog("Display cleared");
+            updateDisplay();
+        }
+        
+        function backspace() {
+            if (currentInput.length === 1) {
+                currentInput = '0';
+            } else {
+                currentInput = currentInput.slice(0, -1);
+            }
+            updateDisplay();
+        }
+        
+        function addLog(message) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = message;
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        // Matrix background effect
+        function createMatrixEffect() {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'matrix-bg';
+            document.body.appendChild(canvas);
+            
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const chars = "01010101abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$#@%&!?*";
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            
+            const drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = 1;
+            }
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 10, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff00';
+                ctx.font = `${fontSize}px monospace`;
+                
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    
+                    drops[i]++;
+                }
+            }
+            
+            setInterval(draw, 33);
+        }
+        
+        window.onload = function() {
+            updateDisplay();
+            createMatrixEffect();
+            addLog("Ads initialized");
         };
-        fetchCafes();
-      }, []);
-
-      // Handle search and filter
-      useEffect(() => {
-        let filtered = cafes.filter(cafe =>
-          cafe['Cafe Name'].toLowerCase().includes(searchTerm.toLowerCase()) &&
-          parseInt(cafe['Rating']) >= minRating
-        );
-        setFilteredCafes(filtered);
-      }, [searchTerm, minRating, cafes]);
-
-      return (
-        <div className="max-w-4xl mx-auto p-4">
-          <h1 className="text-3xl font-bold text-amber-800 text-center mb-6 animate-bounce-in">
-            City Cafe Guide
-          </h1>
-          {selectedCafe ? (
-            <CafeDetail cafe={selectedCafe} onBack={() => setSelectedCafe(null)} />
-          ) : (
-            <>
-              <div className="flex justify-between mb-4">
-                <input
-                  type="text"
-                  placeholder="Search cafes..."
-                  className="w-2/3 p-2 rounded-lg border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                />
-                <select
-                  className="w-1/3 p-2 rounded-lg border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  value={minRating}
-                  onChange={e => setMinRating(parseInt(e.target.value))}
-                >
-                  <option value={0}>All Ratings</option>
-                  <option value={4}>4+ Stars</option>
-                  <option value={5}>5 Stars</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {filteredCafes.map((cafe, index) => (
-                  <CafeCard
-                    key={index}
-                    cafe={cafe}
-                    onClick={() => setSelectedCafe(cafe)}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      );
-    };
-
-    // Render the app
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
+    </script>
 </body>
 </html>
-```
-
-### Explanation of Changes and Features
-
-1. **Anime-Inspired Graphics and Design**:
-   - **Font**: Uses "Anime Ace" font from Google Fonts to give an anime-style text aesthetic.
-   - **Colors**: Combines the requested light brown (`amber-50`, `amber-600`, `amber-800`) and white (`bg-white`) theme with vibrant yellow (`yellow-400`) for stars to add an anime-like pop.
-   - **Animations**: Added a `bounceIn` animation for elements like cafe cards and the title, and a `hover-scale` effect for interactive elements (cards, stars, buttons) to mimic anime’s playful, dynamic feel.
-   - **Rounded Elements**: Cards and buttons have rounded corners for a softer, anime-inspired look.
-
-2. **App Features**:
-   - **Home Screen**: Displays a grid of cafe cards with image, name, rating (as stars), and address. Cards animate on load and scale on hover.
-   - **Detail Screen**: Tapping a cafe shows a detailed view with a larger image, address, open hours, and speciality coffee. A "Back" button returns to the list.
-   - **Search and Filter**: A search bar filters cafes by name, and a dropdown filters by rating (All, 4+ stars, 5 stars).
-   - **Public Access**: No login or authentication is required, ensuring anyone can use the app.
-
-3. **Data Source**:
-   - Fetches data from a Google Sheet named "City_Cafes" using the Google Sheets API. You’ll need to replace `YOUR_API_KEY` and `YOUR_SHEET_ID` with your actual Google Sheets API key and spreadsheet ID. Ensure the sheet is publicly accessible or configured to work with the API key.
-   - Assumes columns: Cafe Name, Address, Rating, Speciality Coffee, Image URL, Open Hours.
-
-4. **Technical Notes**:
-   - Uses React for dynamic rendering, Axios for API calls, and Tailwind CSS for styling.
-   - Includes error handling for image URLs (falls back to a placeholder if invalid).
-   - The app is responsive, with a single-column layout on mobile and a two-column grid on larger screens.
-
-### Next Steps
-- **Google Sheets Setup**: Create a Google Sheet named "City_Cafes" with the specified columns. Make it publicly accessible or generate an API key via the Google Cloud Console. Update the `API_KEY` and `SHEET_ID` in the code.
-- **Deployment**: Host the app on a platform like Netlify or Vercel for public access. Simply upload the `index.html` file or use a static site generator.
-- **Testing**: Test the app locally by saving the code as `index.html` and opening it in a browser (ensure internet access for CDN dependencies).
-- **Further Customization**: If you want specific anime characters, custom illustrations, or additional animations, please confirm if you’d like me to generate images or describe the desired graphics in more detail.
-
-If you have specific anime styles (e.g., Studio Ghibli, Shonen, etc.) or additional graphic elements in mind, let me know, and I can refine the design further!
